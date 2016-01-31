@@ -1,5 +1,5 @@
 #include "rpintf_redis_c_cluster.h"
-#include "string.h"
+#include "rpmain.h"
 
 int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value) {
     int ret = 0;
@@ -10,16 +10,16 @@ int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const st
     redisReply *reply = cluster.run(commands);
     if( !reply ) {
         ret = -1;
-        log_err(cluster.ttls(), cluster.err(), cluster.strerr().c_str());
+        RP_LOG_ERR(cluster.ttls(), cluster.err(), cluster.strerr().c_str());
     } else if( reply->type==REDIS_REPLY_STATUS && !strcmp(reply->str, "OK") ) {
         ret = 0;
     } else if( reply->type==REDIS_REPLY_ERROR ) {
         //std::cout << "redis_set error " << reply->str << std::endl;
         ret = -1;
-        log_err(cluster.ttls(), 100, reply->str);
+        RP_LOG_ERR(cluster.ttls(), 100, reply->str);
     } else {
         ret = -1;
-        log_err(cluster.ttls(), 10000 + reply->type, "unknown redis server error");
+        RP_LOG_ERR(cluster.ttls(), 10000 + reply->type, "unknown redis server error");
     }
 
     if( reply )
@@ -36,7 +36,7 @@ int redis_get(redis::cluster::Cluster &cluster, const std::string &key, std::str
     redisReply *reply = cluster.run(commands);
     if( !reply ) {
         ret = -1;
-        log_err(cluster.ttls(), cluster.err(), cluster.strerr().c_str());
+        RP_LOG_ERR(cluster.ttls(), cluster.err(), cluster.strerr().c_str());
     } else if( reply->type==REDIS_REPLY_NIL ) {
         ret = 1; //not found
     } else if( reply->type==REDIS_REPLY_STRING ) {
@@ -45,10 +45,10 @@ int redis_get(redis::cluster::Cluster &cluster, const std::string &key, std::str
     } else if( reply->type==REDIS_REPLY_ERROR ) {
         //std::cout << "redis_get error " << reply->str << std::endl;
         ret = -1;
-        log_err(cluster.ttls(), 200, reply->str);
+        RP_LOG_ERR(cluster.ttls(), 200, reply->str);
     } else {
         ret = -1;
-        log_err(cluster.ttls(), 20000 + reply->type, "unknown redis server error");
+        RP_LOG_ERR(cluster.ttls(), 20000 + reply->type, "unknown redis server error");
     }
 
     if( reply )

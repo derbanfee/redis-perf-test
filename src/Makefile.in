@@ -32,7 +32,15 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = rp3m$(EXEEXT)
+bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
+@RP_ENABLE_RP3M_TRUE@am__append_1 = rp3m 
+@RP_ENABLE_RP3M_TRUE@@RP_USE_GRAPH_TRUE@am__append_2 = rpgraph.h rpgraph.cpp
+@RP_ENABLE_RP3M_TRUE@@RP_USE_GRAPH_TRUE@am__append_3 = -I@rrd_header_path@
+@RP_ENABLE_RP3M_TRUE@@RP_USE_GRAPH_TRUE@am__append_4 = @rrd_lib@ 
+@RP_ENABLE_RPCLUSTER_TRUE@am__append_5 = rpcluster
+@RP_ENABLE_RPCLUSTER_TRUE@@RP_USE_GRAPH_TRUE@am__append_6 = rpgraph.h rpgraph.cpp
+@RP_ENABLE_RPCLUSTER_TRUE@@RP_USE_GRAPH_TRUE@am__append_7 = -I@rrd_header_path@
+@RP_ENABLE_RPCLUSTER_TRUE@@RP_USE_GRAPH_TRUE@am__append_8 = @rrd_lib@
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -43,12 +51,32 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+@RP_ENABLE_RP3M_TRUE@am__EXEEXT_1 = rp3m$(EXEEXT)
+@RP_ENABLE_RPCLUSTER_TRUE@am__EXEEXT_2 = rpcluster$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_rp3m_OBJECTS = rp3m-rpmain.$(OBJEXT) rp3m-hash_slot.$(OBJEXT) \
-	rp3m-rpintf_redis3m.$(OBJEXT)
+am__rp3m_SOURCES_DIST = rpmain.h rpmain.cpp hash_slot.h hash_slot.cpp \
+	rpintf_redis3m.h rpintf_redis3m.cpp rpgraph.h rpgraph.cpp
+@RP_ENABLE_RP3M_TRUE@@RP_USE_GRAPH_TRUE@am__objects_1 = rp3m-rpgraph.$(OBJEXT)
+@RP_ENABLE_RP3M_TRUE@am_rp3m_OBJECTS = rp3m-rpmain.$(OBJEXT) \
+@RP_ENABLE_RP3M_TRUE@	rp3m-hash_slot.$(OBJEXT) \
+@RP_ENABLE_RP3M_TRUE@	rp3m-rpintf_redis3m.$(OBJEXT) \
+@RP_ENABLE_RP3M_TRUE@	$(am__objects_1)
 rp3m_OBJECTS = $(am_rp3m_OBJECTS)
-rp3m_LDADD = $(LDADD)
+am__DEPENDENCIES_1 =
+@RP_ENABLE_RP3M_TRUE@rp3m_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__rpcluster_SOURCES_DIST = rpmain.h rpmain.cpp hash_slot.h \
+	hash_slot.cpp rpintf_redis_c_cluster.h \
+	rpintf_redis_c_cluster.cpp rpgraph.h rpgraph.cpp
+@RP_ENABLE_RPCLUSTER_TRUE@@RP_USE_GRAPH_TRUE@am__objects_2 = rpcluster-rpgraph.$(OBJEXT)
+@RP_ENABLE_RPCLUSTER_TRUE@am_rpcluster_OBJECTS =  \
+@RP_ENABLE_RPCLUSTER_TRUE@	rpcluster-rpmain.$(OBJEXT) \
+@RP_ENABLE_RPCLUSTER_TRUE@	rpcluster-hash_slot.$(OBJEXT) \
+@RP_ENABLE_RPCLUSTER_TRUE@	rpcluster-rpintf_redis_c_cluster.$(OBJEXT) \
+@RP_ENABLE_RPCLUSTER_TRUE@	$(am__objects_2)
+rpcluster_OBJECTS = $(am_rpcluster_OBJECTS)
+@RP_ENABLE_RPCLUSTER_TRUE@rpcluster_DEPENDENCIES =  \
+@RP_ENABLE_RPCLUSTER_TRUE@	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -62,8 +90,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(rp3m_SOURCES)
-DIST_SOURCES = $(rp3m_SOURCES)
+SOURCES = $(rp3m_SOURCES) $(rpcluster_SOURCES)
+DIST_SOURCES = $(am__rp3m_SOURCES_DIST) $(am__rpcluster_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -144,6 +172,10 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+redis_3m_libs = @redis_3m_libs@
+redis_cluster_libs = @redis_cluster_libs@
+rrd_header_path = @rrd_header_path@
+rrd_lib = @rrd_lib@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -152,8 +184,21 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-rp3m_SOURCES = rpmain.cpp hash_slot.h hash_slot.cpp rpintf_redis3m.h rpintf_redis3m.cpp 
-rp3m_CPPFLAGS = -DRP_USE_REDIS3M
+@RP_ENABLE_RP3M_TRUE@rp3m_SOURCES = rpmain.h rpmain.cpp hash_slot.h \
+@RP_ENABLE_RP3M_TRUE@	hash_slot.cpp rpintf_redis3m.h \
+@RP_ENABLE_RP3M_TRUE@	rpintf_redis3m.cpp $(am__append_2)
+@RP_ENABLE_RP3M_TRUE@rp3m_CPPFLAGS = -DRP_USE_REDIS3M $(am__append_3)
+@RP_ENABLE_RP3M_TRUE@rp3m_LDADD = @redis_3m_libs@ $(am__append_4)
+@RP_ENABLE_RPCLUSTER_TRUE@rpcluster_SOURCES = rpmain.h rpmain.cpp \
+@RP_ENABLE_RPCLUSTER_TRUE@	hash_slot.h hash_slot.cpp \
+@RP_ENABLE_RPCLUSTER_TRUE@	rpintf_redis_c_cluster.h \
+@RP_ENABLE_RPCLUSTER_TRUE@	rpintf_redis_c_cluster.cpp \
+@RP_ENABLE_RPCLUSTER_TRUE@	$(am__append_6)
+@RP_ENABLE_RPCLUSTER_TRUE@rpcluster_CPPFLAGS =  \
+@RP_ENABLE_RPCLUSTER_TRUE@	-DRP_USE_REDIS_C_CLUSTER \
+@RP_ENABLE_RPCLUSTER_TRUE@	$(am__append_7)
+@RP_ENABLE_RPCLUSTER_TRUE@rpcluster_LDADD = @redis_cluster_libs@ \
+@RP_ENABLE_RPCLUSTER_TRUE@	$(am__append_8)
 all: all-am
 
 .SUFFIXES:
@@ -228,6 +273,9 @@ clean-binPROGRAMS:
 rp3m$(EXEEXT): $(rp3m_OBJECTS) $(rp3m_DEPENDENCIES) 
 	@rm -f rp3m$(EXEEXT)
 	$(CXXLINK) $(rp3m_OBJECTS) $(rp3m_LDADD) $(LIBS)
+rpcluster$(EXEEXT): $(rpcluster_OBJECTS) $(rpcluster_DEPENDENCIES) 
+	@rm -f rpcluster$(EXEEXT)
+	$(CXXLINK) $(rpcluster_OBJECTS) $(rpcluster_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -236,8 +284,13 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rp3m-hash_slot.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rp3m-rpgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rp3m-rpintf_redis3m.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rp3m-rpmain.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpcluster-hash_slot.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpcluster-rpgraph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rpcluster-rpmain.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -294,6 +347,76 @@ rp3m-rpintf_redis3m.obj: rpintf_redis3m.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpintf_redis3m.cpp' object='rp3m-rpintf_redis3m.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rp3m_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rp3m-rpintf_redis3m.obj `if test -f 'rpintf_redis3m.cpp'; then $(CYGPATH_W) 'rpintf_redis3m.cpp'; else $(CYGPATH_W) '$(srcdir)/rpintf_redis3m.cpp'; fi`
+
+rp3m-rpgraph.o: rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rp3m_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rp3m-rpgraph.o -MD -MP -MF $(DEPDIR)/rp3m-rpgraph.Tpo -c -o rp3m-rpgraph.o `test -f 'rpgraph.cpp' || echo '$(srcdir)/'`rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rp3m-rpgraph.Tpo $(DEPDIR)/rp3m-rpgraph.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpgraph.cpp' object='rp3m-rpgraph.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rp3m_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rp3m-rpgraph.o `test -f 'rpgraph.cpp' || echo '$(srcdir)/'`rpgraph.cpp
+
+rp3m-rpgraph.obj: rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rp3m_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rp3m-rpgraph.obj -MD -MP -MF $(DEPDIR)/rp3m-rpgraph.Tpo -c -o rp3m-rpgraph.obj `if test -f 'rpgraph.cpp'; then $(CYGPATH_W) 'rpgraph.cpp'; else $(CYGPATH_W) '$(srcdir)/rpgraph.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rp3m-rpgraph.Tpo $(DEPDIR)/rp3m-rpgraph.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpgraph.cpp' object='rp3m-rpgraph.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rp3m_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rp3m-rpgraph.obj `if test -f 'rpgraph.cpp'; then $(CYGPATH_W) 'rpgraph.cpp'; else $(CYGPATH_W) '$(srcdir)/rpgraph.cpp'; fi`
+
+rpcluster-rpmain.o: rpmain.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpmain.o -MD -MP -MF $(DEPDIR)/rpcluster-rpmain.Tpo -c -o rpcluster-rpmain.o `test -f 'rpmain.cpp' || echo '$(srcdir)/'`rpmain.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpmain.Tpo $(DEPDIR)/rpcluster-rpmain.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpmain.cpp' object='rpcluster-rpmain.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpmain.o `test -f 'rpmain.cpp' || echo '$(srcdir)/'`rpmain.cpp
+
+rpcluster-rpmain.obj: rpmain.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpmain.obj -MD -MP -MF $(DEPDIR)/rpcluster-rpmain.Tpo -c -o rpcluster-rpmain.obj `if test -f 'rpmain.cpp'; then $(CYGPATH_W) 'rpmain.cpp'; else $(CYGPATH_W) '$(srcdir)/rpmain.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpmain.Tpo $(DEPDIR)/rpcluster-rpmain.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpmain.cpp' object='rpcluster-rpmain.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpmain.obj `if test -f 'rpmain.cpp'; then $(CYGPATH_W) 'rpmain.cpp'; else $(CYGPATH_W) '$(srcdir)/rpmain.cpp'; fi`
+
+rpcluster-hash_slot.o: hash_slot.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-hash_slot.o -MD -MP -MF $(DEPDIR)/rpcluster-hash_slot.Tpo -c -o rpcluster-hash_slot.o `test -f 'hash_slot.cpp' || echo '$(srcdir)/'`hash_slot.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-hash_slot.Tpo $(DEPDIR)/rpcluster-hash_slot.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hash_slot.cpp' object='rpcluster-hash_slot.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-hash_slot.o `test -f 'hash_slot.cpp' || echo '$(srcdir)/'`hash_slot.cpp
+
+rpcluster-hash_slot.obj: hash_slot.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-hash_slot.obj -MD -MP -MF $(DEPDIR)/rpcluster-hash_slot.Tpo -c -o rpcluster-hash_slot.obj `if test -f 'hash_slot.cpp'; then $(CYGPATH_W) 'hash_slot.cpp'; else $(CYGPATH_W) '$(srcdir)/hash_slot.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-hash_slot.Tpo $(DEPDIR)/rpcluster-hash_slot.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='hash_slot.cpp' object='rpcluster-hash_slot.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-hash_slot.obj `if test -f 'hash_slot.cpp'; then $(CYGPATH_W) 'hash_slot.cpp'; else $(CYGPATH_W) '$(srcdir)/hash_slot.cpp'; fi`
+
+rpcluster-rpintf_redis_c_cluster.o: rpintf_redis_c_cluster.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpintf_redis_c_cluster.o -MD -MP -MF $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Tpo -c -o rpcluster-rpintf_redis_c_cluster.o `test -f 'rpintf_redis_c_cluster.cpp' || echo '$(srcdir)/'`rpintf_redis_c_cluster.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Tpo $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpintf_redis_c_cluster.cpp' object='rpcluster-rpintf_redis_c_cluster.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpintf_redis_c_cluster.o `test -f 'rpintf_redis_c_cluster.cpp' || echo '$(srcdir)/'`rpintf_redis_c_cluster.cpp
+
+rpcluster-rpintf_redis_c_cluster.obj: rpintf_redis_c_cluster.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpintf_redis_c_cluster.obj -MD -MP -MF $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Tpo -c -o rpcluster-rpintf_redis_c_cluster.obj `if test -f 'rpintf_redis_c_cluster.cpp'; then $(CYGPATH_W) 'rpintf_redis_c_cluster.cpp'; else $(CYGPATH_W) '$(srcdir)/rpintf_redis_c_cluster.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Tpo $(DEPDIR)/rpcluster-rpintf_redis_c_cluster.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpintf_redis_c_cluster.cpp' object='rpcluster-rpintf_redis_c_cluster.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpintf_redis_c_cluster.obj `if test -f 'rpintf_redis_c_cluster.cpp'; then $(CYGPATH_W) 'rpintf_redis_c_cluster.cpp'; else $(CYGPATH_W) '$(srcdir)/rpintf_redis_c_cluster.cpp'; fi`
+
+rpcluster-rpgraph.o: rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpgraph.o -MD -MP -MF $(DEPDIR)/rpcluster-rpgraph.Tpo -c -o rpcluster-rpgraph.o `test -f 'rpgraph.cpp' || echo '$(srcdir)/'`rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpgraph.Tpo $(DEPDIR)/rpcluster-rpgraph.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpgraph.cpp' object='rpcluster-rpgraph.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpgraph.o `test -f 'rpgraph.cpp' || echo '$(srcdir)/'`rpgraph.cpp
+
+rpcluster-rpgraph.obj: rpgraph.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rpcluster-rpgraph.obj -MD -MP -MF $(DEPDIR)/rpcluster-rpgraph.Tpo -c -o rpcluster-rpgraph.obj `if test -f 'rpgraph.cpp'; then $(CYGPATH_W) 'rpgraph.cpp'; else $(CYGPATH_W) '$(srcdir)/rpgraph.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/rpcluster-rpgraph.Tpo $(DEPDIR)/rpcluster-rpgraph.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='rpgraph.cpp' object='rpcluster-rpgraph.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(rpcluster_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rpcluster-rpgraph.obj `if test -f 'rpgraph.cpp'; then $(CYGPATH_W) 'rpgraph.cpp'; else $(CYGPATH_W) '$(srcdir)/rpgraph.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -493,9 +616,6 @@ uninstall-am: uninstall-binPROGRAMS
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-binPROGRAMS
 
-#rpcluster_SOURCES = rpmain.cpp hash_slot.h hash_slot.cpp rpintf_redis_c_cluster.h rpintf_redis_c_cluster.cpp
-#rpcluster_CPPFLAGS = -DRP_USE_REDIS_C_CLUSTER
-#AM_LDFLAGS = 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

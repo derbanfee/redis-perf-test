@@ -1,13 +1,13 @@
-#ifdef SUPPORT_RRD
+#include "rpgraph.h"
+#include "rpmain.h"
 #include "rrd.h"
+
 static char rrd_file[] = "./infinite.rrd";
 
 #define RRD_DURATION_1D 86400
 #define RRD_DURATION_1H 3600
 #define RRD_DURATION_1M 60
-#endif
 
-#ifdef SUPPORT_RRD
 
 #define __RC_RRD_PUT_ARG(argv, val, line) \
     char arg##line[] = val;\
@@ -218,5 +218,4 @@ void update_rrd_png(uint32_t now_sec, bool force) {
 #undef _RC_RRD_PUT_ARG
 #undef RC_RRD_PUT_ARG
 #undef RC_RRD_PUT_ARGSQ
-#endif
 

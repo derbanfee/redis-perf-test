@@ -1,6 +1,7 @@
-#include <stdio.h>
 #include "rpintf_redis3m.h"
+#include "rpmain.h"
 #include "hash_slot.h"
+
 
 
 namespace redis {
@@ -43,9 +44,9 @@ int Cluster::setup(const char *startup, bool lazy) {
 #endif
             node.pool = redis3m::simple_pool::create(node.host, atoi(node.port.c_str()), timeout_);
             if(!node.pool) {
-                fprintf(stderr, "fail to connect to server:%s:%s\r\n", node.host.c_str(), node.port.c_str());
+                fprintf(stderr, "fail to create redis3m simple_pool:%s:%s\r\n", node.host.c_str(), node.port.c_str());
                 free(buf);
-#ifdef DEBUG_CONN_POOL_STAT                
+#ifdef DEBUG_CONN_POOL_STAT
                 delete lock;
 #endif
                 return -1;
@@ -79,20 +80,24 @@ int Cluster::set(const std::string &key, const std::string& value) {
 #endif
         redis3m::connection::ptr_t conn = node.pool->get();
         if(!conn) {
-            log_err(0, -1, "no avaliable connection");
+            RP_LOG_ERR(0, -1, "no avaliable connection");
             return -1;
         }
-        redis3m::reply rp = conn->run(redis3m::command("SET")(value)(value)("EX")(timeout_));
+        //RP_LOG_ERR(0, -1, "set key:%s value:[%s]\r\n", key.c_str(), value.c_str());
+        redis3m::reply rp = conn->run(redis3m::command("SET")(key)(value)("EX")(timeout_));
         node.pool->put(conn);
 
         if (rp.type() == redis3m::reply::STATUS && rp.str() == "OK") {
             return 0;
-        } else {
-            log_err(0, 10000+rp.type(), "redis3m set fail");
+        } else if (rp.type() == redis3m::reply::ERROR){
+            RP_LOG_ERR(0, 10000+rp.type(), rp.str().c_str());
+            return -1;
+        }else {
+            RP_LOG_ERR(0, 10000+rp.type(), "redis3m set fail");
             return -1;
         }
     } catch(...) {
-        log_err(0, 100, "redis3m exception");
+        RP_LOG_ERR(0, 100, "redis3m exception");
         return -1;
     }
 
@@ -111,7 +116,7 @@ int Cluster::get(const std::string &key, std::string& value) {
 #endif
         redis3m::connection::ptr_t conn = node.pool->get();
         if(!conn) {
-            log_err(0, -1, "no avaliable connection");
+            RP_LOG_ERR(0, -1, "no avaliable connection");
             return -1;
         }
 
@@ -123,18 +128,18 @@ int Cluster::get(const std::string &key, std::string& value) {
             return 0;
 
         } else if(rp.type() == redis3m::reply::ERROR) {
-            log_err(0, -1, "redis3m error");
+            RP_LOG_ERR(0, -1, "redis3m error");
             return -1;
 
         } else if(rp.type() == redis3m::reply::NIL) {
             return 1; // not found
 
         } else {
-            log_err(0, 20000+rp.type(), "unkonwn redis3m::replay type");
+            RP_LOG_ERR(0, 20000+rp.type(), "unkonwn redis3m::replay type");
             return -1;
         }
     } catch(...) {
-        log_err(0, 200, "redis3m exception");
+        RP_LOG_ERR(0, 200, "redis3m exception");
         return -1;
     }
 }

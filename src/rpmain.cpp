@@ -1,13 +1,9 @@
-#include <errno.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <ncurses.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <iostream>
-#include <map>
+#include "rpmain.h"
+
+#ifdef RP_WITH_GRAPH
+#include "rpgraph.h"
+#endif
+
 #ifdef RP_USE_REDIS3M
 #include "rpintf_redis3m.h"
 #endif
@@ -23,9 +19,9 @@
 #define MAX_GRAPH_DURATION (12*50400) // if change, should no more than avaliable in database
 #define ERR_BUF_LEN 1000
 
-const static char str_conf_notify_file[] = "./redis_perf.notify";
-const static char str_conf_file[]        = "./redis_perf.conf";
-const static char str_conf_target_graph_duration[] = "read_write_duration";
+const static char str_conf_notify_file[] = "./rp.notify";
+const static char str_conf_file[]        = "./rp.conf";
+const static char str_conf_target_graph_duration[] = "graph_duration";
 const static char str_conf_target_thread_num[]  = "thread_num";
 const static char str_conf_target_thread_load[] = "thread_load";
 
@@ -82,16 +78,22 @@ char *cur_time() {
     return cur_time_buf;
 }
 
-void log_err(int ttls, int err, const char *strerr) {
+void log_err(int ttls, int err, const char *func, int line, const char *format, ...) {
     static char last_err[ERR_BUF_LEN]= {'\0'};
     static char this_err[ERR_BUF_LEN]= {'\0'};
+    static char buf_fmt[ERR_BUF_LEN]= {'\0'};
     static unsigned int  dup_times = 0;
     static char *plast_err = last_err;
     static char *pthis_err = this_err;
+    va_list  vargs;
+    va_start(vargs, format);
+    
 
     redis::cluster::LockGuard lg(err_lock);
 
-    snprintf(pthis_err, ERR_BUF_LEN, "[ERR] %s t %d: e %d:[%s]\r\n", cur_time(), ttls, err, strerr);
+    //snprintf(buf_fmt, ERR_BUF_LEN, "[ERR] %s %s():%d ttls: %d errno: %d :%s\r\n", cur_time(), func, line, ttls, err, format);
+    snprintf(buf_fmt, ERR_BUF_LEN, "[ERR] %s ttls: %d errno: %d :%s\r\n", cur_time(), ttls, err, format);
+    vsnprintf(pthis_err, ERR_BUF_LEN, buf_fmt, vargs);
     if(strcmp(plast_err, pthis_err) == 0) {
         dup_times++;
     } else {
@@ -104,6 +106,7 @@ void log_err(int ttls, int err, const char *strerr) {
         plast_err = pthis_err;
         pthis_err = p;
     }
+    va_end(vargs);
 }
 
 std::string get_random_key(unsigned int &seed, unsigned int &count) {
@@ -143,7 +146,7 @@ void* thread_write(void* para) {
     volatile stat_item_t        *pstat   = &pmydata->stat;
 
     check_point(now_us, now_sec, last_us);
-    value_seed = now_us;
+    value_seed = now_us + 5;
     key_seed   = now_us;
     pmydata->key_seed = key_seed;
     seed_count = pmydata->seed_count;
@@ -281,11 +284,11 @@ void* thread_read(void* para) {
 }
 
 /* draw graphic output */
-#ifdef SUPPORT_RRD
+#ifdef RP_WITH_GRAPH
 void* thread_graph(void* para) {
     struct  timeval tv;
     unsigned int last_rrd_duration = conf_graph_duration;
-    
+
     while(conf_is_running) {
         gettimeofday( &tv, NULL );
         if(last_rrd_duration != conf_graph_duration) {
@@ -312,13 +315,13 @@ bool update_config(unsigned int usec, bool force) {
             return false;
         }
         if(remove(str_conf_notify_file) != 0) {
-            log_err(0, errno, strerror(errno));
+            RP_LOG_ERR(0, errno, strerror(errno));
         }
     }
 
     FILE *fp = fopen(str_conf_file, "r");
     if(!fp) {
-        log_err(0, errno, strerror(errno));
+        RP_LOG_ERR(0, errno,"fail to open file %s: %s", str_conf_file, strerror(errno));
         return false;;
     }
 
@@ -338,7 +341,7 @@ bool update_config(unsigned int usec, bool force) {
                     uval = MAX_GRAPH_DURATION;
                 }
                 conf_graph_duration = uval;
-                printf("update configuration %s to %u\r\n", pk, uval);
+                printf("load configuration %s to %u\r\n", pk, uval);
             }
         } else if(strcmp(pk, str_conf_target_thread_num) == 0) {
             pv = strtok_r(NULL, " \t\r\n", &saveptr);
@@ -348,7 +351,7 @@ bool update_config(unsigned int usec, bool force) {
                     uval = MAX_THREAD_NUM;
                 }
                 conf_threads_num = uval;
-                printf("update configuration %s to %u\r\n", pk, uval);
+                printf("load configuration %s to %u\r\n", pk, uval);
             }
         } else if(strcmp(pk, str_conf_target_thread_load) == 0) {
             pv = strtok_r(NULL, " \t\r\n", &saveptr);
@@ -358,7 +361,7 @@ bool update_config(unsigned int usec, bool force) {
                     uval = MAX_THREAD_LOAD;
                 }
                 conf_thread_load = uval;
-                printf("update configuration %s to %u\r\n", pk, uval);
+                printf("load configuration %s to %u\r\n", pk, uval);
             }
         }
     }
@@ -379,24 +382,24 @@ int main(int argc, char *argv[]) {
         std::cerr << "pthread_spin_init fail" << std::endl;
         return 1;
     }
-    
+
     struct  timeval tv;
-    
+
     gettimeofday( &tv, NULL );
     if( !update_config(tv.tv_usec, true)) {
         return 1;
     }
 
-#ifdef SUPPORT_RRD
+#ifdef RP_WITH_GRAPH
     if(create_rrd_ds() != 0) {
         return 1;
     }
-    
+
     pthread_t thgraph;
     if(pthread_create(&thgraph, NULL, thread_graph, NULL) != 0) {
         std::cerr << "create graph thread fail" << std::endl;
         return 1;
-    }    
+    }
 #endif
 
     /* init cluster */
@@ -525,7 +528,7 @@ int main(int argc, char *argv[]) {
             total_read  += read;
             total_write += write;
 
-#ifdef SUPPORT_RRD
+#ifdef RP_WITH_GRAPH
             update_rrd_file(now_sec, read, read_error,read_lost, unmatch, (read?(read_ttl/read):0), write, write_new, write_error,(write?(write_ttl/write):0),   // 1
                             (read?(read_t/read):0), (write?(write_t/write):0) // 2
                            );
