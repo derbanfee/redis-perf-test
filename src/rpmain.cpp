@@ -110,7 +110,7 @@ void log_err(int ttls, int err, const char *func, int line, const char *format, 
 }
 
 std::string get_random_key(unsigned int &seed, unsigned int &count) {
-    int n = 100000*(rand_r(&seed)/(RAND_MAX+0.1));
+    int n = 1000000*(rand_r(&seed)/(RAND_MAX+0.1));
     std::ostringstream ss;
     ss << "key_" << n;
     count++;
@@ -118,7 +118,7 @@ std::string get_random_key(unsigned int &seed, unsigned int &count) {
 }
 
 std::string get_random_value(unsigned int &seed) {
-    int n = 100000*(rand_r(&seed)/(RAND_MAX+0.1));
+    int n = 1000000*(rand_r(&seed)/(RAND_MAX+0.1));
     std::ostringstream ss;
     ss << "value_" << n;
     return ss.str();
@@ -186,7 +186,7 @@ void* thread_write(void* para) {
 
         /* set */
         check_point(now_us, now_sec, last_us);
-        int rv = redis_set(*cluster_, key, value_write);
+        int rv = redis_set(*cluster_, key, value_write, 3600);
         pstat->write_ttl += cluster_->ttls();
         pstat->write ++;
         if( rv<0 ) {

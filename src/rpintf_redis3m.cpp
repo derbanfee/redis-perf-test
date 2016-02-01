@@ -33,7 +33,7 @@ int Cluster::setup(const char *startup, bool lazy) {
             node.port = port+1;
 
 #ifdef DEBUG_CONN_POOL_STAT
-            pthread_spin_lock *lock = new pthread_spin_lock;
+            pthread_spinlock_t *lock = new pthread_spinlock_t;
             if(pthread_spin_init(lock, PTHREAD_PROCESS_PRIVATE) != 0) {
                 fprintf(stderr, "fail to init spin_lock for node %s:%s\r\n", node.host.c_str(), node.port.c_str());
                 free(buf);
@@ -68,13 +68,13 @@ int Cluster::setup(const char *startup, bool lazy) {
     return 0;
 }
 
-int Cluster::set(const std::string &key, const std::string& value) {
+int Cluster::set(const std::string &key, const std::string& value, unsigned int expired_time) {
     Node     &node = node_pool_[get_node_index(key, node_pool_.size())];
     assert(node.pool);
     try {
 #ifdef DEBUG_CONN_POOL_STAT
         {
-            LockGuard lock(node.lock);
+            LockGuard lock(*node.lock);
             node.get_count++;
         }
 #endif
@@ -84,7 +84,7 @@ int Cluster::set(const std::string &key, const std::string& value) {
             return -1;
         }
         //RP_LOG_ERR(0, -1, "set key:%s value:[%s]\r\n", key.c_str(), value.c_str());
-        redis3m::reply rp = conn->run(redis3m::command("SET")(key)(value)("EX")(timeout_));
+        redis3m::reply rp = conn->run(redis3m::command("SET")(key)(value)("EX")(expired_time));
         node.pool->put(conn);
 
         if (rp.type() == redis3m::reply::STATUS && rp.str() == "OK") {
@@ -110,7 +110,7 @@ int Cluster::get(const std::string &key, std::string& value) {
     try {
 #ifdef DEBUG_CONN_POOL_STAT
         {
-            LockGuard lock(node.lock);
+            LockGuard lock(*node.lock);
             node.get_count++;
         }
 #endif
@@ -150,11 +150,11 @@ std::string Cluster::stat_dump() {
 
     for(size_t idx = 0; idx < node_pool_.size(); idx++) {
 #ifdef DEBUG_CONN_POOL_STAT
-        LockGuard lock(node_pool_[idx].lock);
+        LockGuard lock(*node_pool_[idx].lock);
 #endif
         ss<<"\r\nNode{"<< node_pool_[idx].host << ":" << node_pool_[idx].port
 #ifdef DEBUG_CONN_POOL_STAT
-          <<" conn_get: "<< node_pool_[idx].get_count;
+          <<" conn_get: "<< node_pool_[idx].get_count
 #endif
                 <<"}";
     }
@@ -164,9 +164,9 @@ std::string Cluster::stat_dump() {
 }
 }
 
-int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value)
+int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value, unsigned int expired_time)
 {
-    return cluster.set(key, value);
+    return cluster.set(key, value, expired_time);
 }
 int redis_get(redis::cluster::Cluster &cluster, const std::string &key, std::string& value)
 {

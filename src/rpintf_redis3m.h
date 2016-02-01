@@ -5,6 +5,7 @@
 #include "redis3m/simple_pool.h"
 
 
+
 namespace redis {
 namespace cluster {
 
@@ -15,7 +16,7 @@ public:
         std::string port;
         redis3m::simple_pool::ptr_t pool;
 #ifdef DEBUG_CONN_POOL_STAT
-        pthread_spin_lock          *lock;
+        pthread_spinlock_t         *lock;
         uint64_t                    get_count;
 #endif
     }Node;
@@ -24,7 +25,7 @@ public:
     Cluster(unsigned int timeout = 0):timeout_(timeout){}
    ~Cluster();
     int setup(const char *startup, bool lazy);
-    int set(const std::string &key, const std::string& value);
+    int set(const std::string &key, const std::string& value, unsigned int expired_time);
     int get(const std::string &key, std::string& value);
     int ttls(){return 1;};
     std::string stat_dump();
@@ -56,7 +57,7 @@ private:
 
 }}
 
-int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value);
+int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value, unsigned int expired_time);
 int redis_get(redis::cluster::Cluster &cluster, const std::string &key, std::string& value);
 
 #endif

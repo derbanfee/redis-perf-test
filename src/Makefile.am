@@ -3,7 +3,7 @@ bin_PROGRAMS=
 if RP_ENABLE_RP3M
 bin_PROGRAMS += rp3m 
 rp3m_SOURCES = rpmain.h rpmain.cpp hash_slot.h hash_slot.cpp rpintf_redis3m.h rpintf_redis3m.cpp 
-rp3m_CPPFLAGS = -DRP_USE_REDIS3M
+rp3m_CPPFLAGS = -DRP_USE_REDIS3M -DDEBUG_CONN_POOL_STAT
 rp3m_LDADD = @redis_3m_libs@
 if RP_USE_GRAPH
 rp3m_SOURCES  += rpgraph.h rpgraph.cpp

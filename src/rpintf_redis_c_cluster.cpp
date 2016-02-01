@@ -1,12 +1,16 @@
 #include "rpintf_redis_c_cluster.h"
 #include "rpmain.h"
 
-int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value) {
+int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value, unsigned int expired_time) {
     int ret = 0;
+    char buf_expire[25];
+    snprintf(buf_expire, sizeof(buf_expire),"%u", expired_time);
     std::vector<std::string> commands;
     commands.push_back("SET");
     commands.push_back(key);
     commands.push_back(value);
+    commands.push_back("EX");
+    commands.push_back(buf_expire);
     redisReply *reply = cluster.run(commands);
     if( !reply ) {
         ret = -1;

@@ -187,7 +187,8 @@ top_srcdir = @top_srcdir@
 @RP_ENABLE_RP3M_TRUE@rp3m_SOURCES = rpmain.h rpmain.cpp hash_slot.h \
 @RP_ENABLE_RP3M_TRUE@	hash_slot.cpp rpintf_redis3m.h \
 @RP_ENABLE_RP3M_TRUE@	rpintf_redis3m.cpp $(am__append_2)
-@RP_ENABLE_RP3M_TRUE@rp3m_CPPFLAGS = -DRP_USE_REDIS3M $(am__append_3)
+@RP_ENABLE_RP3M_TRUE@rp3m_CPPFLAGS = -DRP_USE_REDIS3M \
+@RP_ENABLE_RP3M_TRUE@	-DDEBUG_CONN_POOL_STAT $(am__append_3)
 @RP_ENABLE_RP3M_TRUE@rp3m_LDADD = @redis_3m_libs@ $(am__append_4)
 @RP_ENABLE_RPCLUSTER_TRUE@rpcluster_SOURCES = rpmain.h rpmain.cpp \
 @RP_ENABLE_RPCLUSTER_TRUE@	hash_slot.h hash_slot.cpp \
