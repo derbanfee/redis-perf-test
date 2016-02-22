@@ -2,7 +2,7 @@
 #define RP_RPINTF_REDIS_C_CLUSTER_H_
 
 #include <hiredis/hiredis.h>
-#include "redis_cluster.hpp"
+#include "redis_cluster.h"
 
 
 int redis_set(redis::cluster::Cluster &cluster, const std::string &key, const std::string& value, unsigned int expired_time);
